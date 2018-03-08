@@ -1,0 +1,2416 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>H590 Project1</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="scripts/d3.min.js" charset="utf-8"></script>
+	<script src="scripts/d3.tip.js" charset="utf-8"></script>
+	<script src="scripts/papaparse.min.js" charset="utf-8"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	
+	<style>
+		
+		.d3-tip {
+		  line-height: 1;
+		  font-weight: bold;
+		  padding: 12px;
+		  background: rgba(0, 0, 0, 0.2);
+		  color: #fff;
+		  border-radius: 5px;
+		}
+		
+		.d3-tip:after {
+		  box-sizing: border-box;
+		  display: inline;
+		  font-size: 10px;
+		  width: 100%;
+		  line-height: 1;
+		  color: rgba(0, 0, 0, 0.2);
+		  content: "\25BC";
+		  position: absolute;
+		  text-align: center;
+		}
+
+		
+		.d3-tip.n:after {
+		  margin: -1px 0 0 0;
+		  top: 100%;
+		  left: 0;
+		}
+    	text { 
+			font-family: Arial; 
+			font-size: 15px;
+		}
+
+		.form-control{
+			width: 300px;
+		}
+		
+		.axis path, .axis line {
+			fill: none;
+			stroke: black;
+			shape-rendering: crispEdges;
+		}
+		.tick text {
+			fill: black;
+			font-size: 11px;
+		}
+		
+		ul.tab {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			border: 1px solid #f00;
+			background-color: #de2d26;
+		}
+
+		/* Float the list items side by side */
+		ul.tab li {}
+
+		/* Style the links inside the list items */
+		ul.tab li a {
+			display: inline-block;
+			color: black;
+			text-align: center;
+			padding: 14px 16px;
+			text-decoration: none;
+			transition: 0.3s;
+			font-size: 17px;
+		}
+
+		/* Change background color of links on hover */
+		ul.tab li a:hover {
+			background-color: #333;
+		}
+
+		/* Create an active/current tablink class */
+		ul.tab li a:focus, .active {
+			background-color: azure;
+		}
+
+		/* Style the tab content */
+		.tabcontent {
+			display: none;
+			padding: 6px 12px;
+			-webkit-animation: fadeEffect 1s;
+			animation: fadeEffect 1s;
+		}
+
+		@-webkit-keyframes fadeEffect {
+			from {opacity: 0;}
+			to {opacity: 1;}
+		}
+
+		@keyframes fadeEffect {
+			from {opacity: 0;}
+			to {opacity: 1;}
+		}
+		
+		.bar:hover {
+		  fill: #ddd;
+		}
+		.container { width:300px; height: 100px; overflow-y: scroll; }
+		
+        .tabi{
+            color: cadetblue;
+            font-size: 18px;
+        }
+	</style>
+</head>
+<body onload="firstTabFunc(event)">
+
+<ul class="tabBar nav nav-tabs">
+  <li><a href="#" class="tablinks tabi" onclick="firstTabFunc(event)">Home</a></li>
+  <li><a href="#" class="tablinks tabi" onclick="secondTabFunc(event)">Comparison</a></li>
+  <li><a href="#" class="tablinks tabi" onclick="thirdTabFunc(event)">Scatter Plot</a></li>
+  <li><a href="#" class="tablinks tabi" onclick="fourthTabFunc(event)">Documentation</a></li>
+    <li><a href="#" class="tablinks tabi" onclick="fifthTabFunc(event)">Video</a></li>
+</ul>
+
+
+<div class="tabcontent" id="first" style="overflow-x:auto;">
+
+			<label style="position: absolute; font-size: 15px; left: 50px;top: 105px">Energy Type: </label><select class="form-control" id="energyTypeList" style="position: absolute; left: 170px;top: 105px"></select>
+			<label style="position: absolute; font-size: 15px; left: 500px;top: 105px">Component: </label><select class="form-control" id="componentWidget" style="position: absolute; left: 620px;top: 105px"></select>
+			<label style="position: absolute; font-size: 15px; left: 950px;top: 105px">Country: </label><select class="form-control" id="selectionWidget" style="position: absolute; left: 1050px;top: 105px"></select>
+			
+			<input type="radio" id="barStyle0" name="chartStyle0" value="barChart" checked="checked" style="position: absolute; left: 550px; top: 200px"> 
+			<label style="position: absolute; left: 580px; top: 200px" for="">Bar Chart</label>
+			<input type="radio" id="lineStyle0" name="chartStyle0" value="lineChart" style="position: absolute; left: 710px; top: 200px"> 
+			<label style="position: absolute; left: 730px; top: 200px" for="">Line Chart</label>
+				
+			<button id="drawChartDisplay" class="btn btn-success" onclick="firstTabFunc.drawChart()" style="position: absolute; left: 650px; top: 300px">Draw</button>
+
+			<label id="label1" style="position: absolute; left: 150px; top: 450px; color: grey; font-size: 20px;" for=""></label>
+			
+			<div style="position: absolute; left: 20px; top: 450px">
+				<svg id="main1" width="1200" height="500">
+	
+				</svg>
+			</div>
+</div>
+
+
+
+<div class="tabcontent" id="second" style="overflow-x:auto;">
+
+			<input type="radio" id="singleStyle" name="chartType" value="single" checked="checked" onclick="singleChartSelected();" style="position: absolute; left: 150px; top: 100px"> 
+			<label style="position: absolute; left: 180px; top: 100px" for="">Single Chart</label>
+			<input type="radio" id="multipleStyle" name="chartType" value="multiple"  onclick="multipleChartSelected();" style="position: absolute; left: 300px; top: 100px"> 
+			<label style="position: absolute; left: 330px; top: 100px" for="">Multiple Chart</label>
+
+			<div id="singleCompareDialog" style="display: block;">
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 150px">Energy Type: </label><select class="form-control" id="energyTypeList1" style="position: absolute; left: 150px;top: 150px"></select>
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 200px">Component: </label><select class="form-control" id="componentWidget1" style="position: absolute; left: 150px;top: 200px"></select>
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 250px">Country 1: </label><select class="form-control" id="selectionWidget1" style="position: absolute; left: 150px;top: 250px"></select>
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 300px">Country 2: </label><select class="form-control" id="selectionWidget2" style="position: absolute; left: 150px;top: 300px"></select>
+
+				<input type="radio" id="barStyle" name="chartStyle" value="barChart" checked="checked" style="position: absolute; left: 150px; top: 350px"> 
+				<label style="position: absolute; left: 180px; top: 350px" for="">Bar Chart</label>
+				<input type="radio" id="lineStyle" name="chartStyle" value="lineChart" style="position: absolute; left: 150px; top: 400px"> 
+				<label style="position: absolute; left: 180px; top: 400px" for="">Line Chart</label>
+			
+						<label id="label2" style="position: absolute; left: 600px; top: 100px; color: grey; font-size: 20px;" for=""></label>
+						
+				<button id="compareDisplay" class="btn btn-success" onclick="secondTabFunc.compareChart()" style="position: absolute; left: 150px; top: 450px;">Compare</button>
+			</div>
+			<div id="multipleCompareDialog" style="display: none;">
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 150px">Energy Type: </label><select class="form-control" id="energyTypeList3" style="position: absolute; left: 150px;top: 150px"></select>
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 200px">Component: </label><select class="form-control" id="componentWidget3" style="position: absolute; left: 150px;top: 200px"></select>
+				<label style="position: absolute; font-size: 15px; left: 50px;top: 250px">Country: </label><select class="form-control" id="selectionWidget3" style="position: absolute; left: 150px;top: 250px"></select>
+				
+				<input type="radio" id="barStyle2" name="chartStyle2" value="barChart" checked="checked" style="position: absolute; left: 150px; top: 300px"> 
+				<label style="position: absolute; left: 180px; top: 300px" for="">Bar Chart</label>
+				<input type="radio" id="lineStyle2" name="chartStyle2" value="lineChart" style="position: absolute; left: 150px; top: 350px"> 
+				<label style="position: absolute; left: 180px; top: 350px" for="">Line Chart</label>
+			
+				<button id="addChart" class="btn btn-success" onclick="secondTabFunc.addChart()" style="position: absolute; left: 150px; top: 400px;">Add Chart</button>
+				<button id="clearAll" class="btn btn-success" onclick="secondTabFunc.clearChart()" style="position: absolute; left: 250px; top: 400px;">Clear All</button>
+			</div>
+						
+			<div style="position: absolute; left: 500px; top: 50px">
+				<svg id="main2" width="900" height="700">
+				
+				</svg>
+			</div>
+
+			<div id="main3Div" style="position: absolute; left: 20px; top: 550px">
+
+			</div>
+	
+</div>
+
+<div class="tabcontent" id="third" style="overflow-x:auto;">
+<table>
+	<tr>
+		<td>
+			<label style="position: absolute; font-size: 15px; left: 50px;top: 100px">Energy Type: </label><select class="form-control" id="energyTypeList4" style="position: absolute; left: 150px;top: 100px"></select>
+			<label style="position: absolute; font-size: 15px; left: 50px;top: 150px">Component: </label><select class="form-control" id="componentWidget4" style="position: absolute; left: 150px;top: 150px"></select>
+			<label style="position: absolute; font-size: 15px; left: 50px;top: 200px">Energy Type: </label><select class="form-control" id="energyTypeList5" style="position: absolute; left: 150px;top: 200px"></select>
+			<label style="position: absolute; font-size: 15px; left: 50px;top: 250px">Component: </label><select class="form-control" id="componentWidget5" style="position: absolute; left: 150px;top: 250px"></select>
+			<label style="position: absolute; font-size: 15px; left: 50px;top: 300px">Select list of countries: </label>
+			<div id="countryList" class="well container" style="position: absolute; left: 150px;top: 350px">
+
+			</div>
+			<button id="scatterDisplay" class="btn btn-success" onclick="thirdTabFunc.scatterChart()" style="position: absolute; left: 150px; top: 470px">Display Chart</button>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div style="position: absolute; left: 500px; top: 50px">
+				<svg id="main4" width="900" height="900">
+
+				</svg>
+			</div>
+		</td>
+	</tr>
+</table>
+</div>
+
+<div class="tabcontent" id="fourth" style="overflow-x:auto;">
+	<object data="data/H590.pdf" type="application/pdf" width="1000" height="500" style="position: absolute; left: 100px; top: 150px;">
+	<a href="data/H590.pdf">Documentation - H590 Interactive Visual Analytics - Project 1</a>
+	</object>
+
+</div>
+<div class="tabcontent" id="fifth" style="overflow-x:auto;">
+
+<video width="600" height="320" controls style="position: absolute; left: 50px; top: 100px;">
+  <source src="data/final.mp4" type="video/mp4" frameborder="2" allowfullscreen >
+  Your browser does not support the video tag.
+</video>
+</div>
+
+
+<script>
+
+var labelList = ["Total Primary Energy Production (quadrillion BTU)",
+				"Total Primary Energy Consumption (quadrillion BTU)",
+				"Total Electricity Generation (billion Kilowatt-hours)",
+				"Total Electricity Consumption (billion Kilowatt-hours)",
+				"Renewable Electricity Generation (billion Kilowatt-hours)",
+				"Renewable Electricity consumption (billion Kilowatt-hours)",
+				"Renewable Biofuel Production  (thousand barrels per day)",
+				"Renewable Biofuel Consumption  (thousand barrels per day)",
+				"Petroleum Production (thousand barrels per day)",
+				"Petroleum Consumption (thousand barrels per day)",
+				"Coal Production (million short tons)",
+				"Coal Consumption (million short tons)",
+				"CO2 Emissions per Capita (metric tons per capita)"];
+				
+	function giveMeEnergy(energy, component)
+	{				
+		switch(energy)
+		{
+			case 'Total Primary Energy': if(component == 'Production')
+											return labelList[0];
+										else
+											return labelList[1];
+										break;
+
+			case 'Total Electricity': if(component == 'Generation')
+											return labelList[2];
+										else
+											return labelList[3];
+										break;
+
+			case 'Renewable Electricity': if(component == 'Generation')
+											return labelList[4];
+										else
+											return labelList[5];
+										break;
+
+			case 'Renewable Biofuels': if(component == 'Production')
+											return labelList[6];
+										else
+											return labelList[7];
+										break;
+
+			case 'Petroleum': if(component == 'Production')
+											return labelList[8];
+										else
+											return labelList[9];
+										break;	
+
+			case 'Coal': if(component == 'Production')
+											return labelList[10];
+										else
+											return labelList[11];
+										break;
+
+			case 'Energy-related Co2 Emissions': if(component == 'Emissions')
+											return labelList[12];
+										break;		
+		}		
+	}	
+
+	function firstTabFunc(event)
+	{
+		console.log(" F: firstTabFunc: ENTER");
+		
+		d3.select('#componentWidget').selectAll('option').remove();
+		
+		var i, tabcontent, tablinks;
+		tabcontent = document.getElementsByClassName("tabcontent");
+		for (i = 0; i < tabcontent.length; i++) {
+			tabcontent[i].style.display = "none";
+		}
+		tablinks = document.getElementsByClassName("tablinks");
+		for (i = 0; i < tablinks.length; i++) {
+			tablinks[i].className = tablinks[i].className.replace(" active", "");
+		}
+		document.getElementById("first").style.display = "block";
+		event.currentTarget.className += " active";
+		
+		var listOfLocalities = [];
+		var localities = {};
+		var localityName;
+
+		var energyTypeSelected;
+		var componentSelected;
+		
+		//have containers for various energy types and component views
+		var energyType = ["Total Primary Energy", "Total Electricity", "Renewable Electricity", 
+							"Renewable Biofuels", "Petroleum", "Coal", "Energy-related Co2 Emissions"];
+		var componentType = ["Production", "Consumption", "Generation", "Emissions"];
+		
+		//Initialize energy type list widget
+		d3.select('#energyTypeList').selectAll('option').data(energyType).enter().append('option')
+			.html(function(d) { return d; })
+			.attr('value', function(d) { return d; })
+		
+		//Initialize component list widget
+		d3.select('#componentWidget').append('option')
+			.attr('value', componentType[0])
+			.html(componentType[0]);
+		d3.select('#componentWidget').append('option')
+			.attr('value', componentType[1])
+			.html(componentType[1]);
+			
+		//If the energy type is chosen, check for the components under it and update the component widget accordingly
+		d3.select("#energyTypeList")
+			.on('change', function() {
+				var selection = document.getElementById('energyTypeList');
+				var energySelection = selection.options[selection.selectedIndex].value;
+				
+				if(energySelection == 'Total Electricity' || energySelection == 'Renewable Electricity')
+				{
+					d3.select('#componentWidget').selectAll('option').remove();
+					d3.select('#componentWidget').append('option')
+						.attr('value', componentType[2])
+						.html(componentType[2]);
+					d3.select('#componentWidget').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+				else if(energySelection == 'Energy-related Co2 Emissions')
+				{
+					d3.select('#componentWidget').selectAll('option').remove();
+					d3.select('#componentWidget').append('option')
+						.attr('value', componentType[3])
+						.html(componentType[3]);				
+				}
+				//for all other cases change back to default component types
+				else
+				{
+					d3.select('#componentWidget').selectAll('option').remove();
+					d3.select('#componentWidget').append('option')
+						.attr('value', componentType[0])
+						.html(componentType[0]);
+					d3.select('#componentWidget').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+			});
+			
+		console.log("O: Widget loading complete");
+		
+		//default display a bar chart
+		boot('drawBarChart');
+			
+		function drawChart()
+		{
+			var chartStyle = document.getElementById('barStyle0').checked;
+			if(chartStyle)
+			{
+				console.log("Drawing bar chats");
+				boot('drawBarChart');
+			}
+			else
+			{
+				console.log("Drawing line chats");
+				boot('drawLineChart');
+			}
+		}
+		firstTabFunc.drawChart = drawChart;
+		
+		function boot(chartType)
+		{
+			console.log("O: boot() ENTER --");
+			d3.select("#main1").selectAll('g').remove();
+							
+			var filename;
+			var selection = document.getElementById('energyTypeList');
+			var energySelection = selection.options[selection.selectedIndex].value;
+			var choice = document.getElementById('componentWidget');
+			var componentSelection = choice.options[choice.selectedIndex].value;
+			
+			energyTypeSelected = energySelection;
+			componentSelected = componentSelection;
+			
+			console.log("energySelection: "+energySelection);
+			console.log("componentSelection: "+componentSelection);
+			
+			for(var i=0; i < energyType.length; i++)
+			{
+				switch(energySelection)
+				{
+					case 'Total Primary Energy':	
+													if(componentSelection == 'Production')
+													{
+														filename="data/total_primary_energy_production.csv";
+													}
+													else
+													{
+														filename="data/total_primary_energy_consumption.csv";
+													}
+													break;
+					case 'Total Electricity':
+													if(componentSelection == 'Generation')
+													{
+														filename="data/total_electricity_generation.csv";
+													}
+													else
+													{
+														filename="data/total_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Electricity':
+													if(componentSelection == 'Generation')
+													{
+														filename="data/renewable_electricity_generation.csv";
+													}
+													else
+													{
+														filename="data/renewable_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Biofuels':
+													if(componentSelection == 'Production')
+													{
+														filename="data/renewable_biofuel_production.csv";
+													}
+													else
+													{
+														filename="data/renewable_biofuel_consumption.csv";
+													}
+													break;
+					case 'Petroleum':
+													if(componentSelection == 'Production')
+													{
+														filename="data/petroleum_production.csv";
+													}
+													else
+													{
+														filename="data/petroleum_consumption.csv";
+													}
+													break;
+					case 'Coal':
+													if(componentSelection == 'Production')
+													{
+														filename="data/coal_production.csv";
+													}
+													else
+													{
+														filename="data/coal_consumption.csv";
+													}
+													break;
+					case 'Energy-related Co2 Emissions':
+													filename="data/co2_emissions_per_capita.csv";
+													break;
+					default: //nothing
+				}
+				console.log("filename:  "+filename);
+			}
+			
+			if(filename != '')
+			{
+					Papa.parse(filename, {
+				
+					download: true,
+					header: true,
+					dynamicTyping: true,
+					complete: function(results) 
+					{
+						// loop through all the rows in file
+						for (var row=0; row < results.data.length; row++)
+						{
+							var record = results.data[row];
+							
+							// make an object to store data for the current locality
+							var locality = {
+								name: record.Locality,
+								energyProduction: []
+							}
+
+							// loop through all years, from 1980 to 2012
+							for (var year=1980; year<=2012; year++) 
+							{
+								var value = record[year];
+								if(isNaN(value))
+								{
+									value = 0;	
+									//console.log("the value is NaN: "+value);
+								}
+								
+								// deal with missing data points
+								if (value === '--') {
+									value = 0;
+								}
+								else if (value === 'NA') {
+									value = 0;
+								}
+								else if (value === '(s)') {
+									value = 0;
+								}
+								else if (value === 'W') {
+									value = 0;
+								}
+
+								// add record of current energy production
+								locality.energyProduction.push( value );
+							}
+
+							// add the current locality to an index
+							localities[ locality.name] = locality;
+							listOfLocalities.push( locality.name );
+						}
+
+						// populate selection list
+						d3.select('#selectionWidget').selectAll('option').data(listOfLocalities).enter().append('option')
+							.html(function(d) { return d; })
+							.attr('value', function(d) { return d; })
+
+						//populate compare widget list	
+						d3.select('#compareWidget').selectAll('option').data(listOfLocalities).enter().append('option')
+							.html(function(d) { return d; })
+							.attr('value', function(d) { return d; })
+							
+						// figure out the newly selected locality
+						var selection = document.getElementById('selectionWidget');
+						localityName = selection.options[selection.selectedIndex].value;
+						console.log("localityName: "+localityName);
+						
+						if(chartType == 'drawBarChart')
+						{
+							drawBarChart();
+						}
+						else
+						{
+							drawLineChart();
+						}
+					}
+				});
+			}
+			console.log("O: boot() EXIT --");
+		}
+		
+		function drawBarChart()
+		{
+			console.log("O: drawBarChart() ENTER --");
+			// get energy production for USA
+			var energyProductionUSA = localities[localityName].energyProduction;
+
+			// figure out maximum energy production
+			var maxProduction = d3.max(energyProductionUSA);
+
+			// chart size 
+			var chartWidth = 1000;
+			var chartHeight = 300;
+			
+			// figure out the width of individual bars
+			var barWidth = chartWidth / (2012-1980);
+
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction])
+				.range([chartHeight , 0]);
+
+			var energyLabel = giveMeEnergy(energyTypeSelected, componentSelected);
+			
+			d3.select("#label1")
+				.html(localityName + " " +energyLabel);
+  
+			var group = d3.select("#main1").append("g")
+				.attr("transform", "translate(130, 100)");
+
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+				return "<strong>Value:</strong> <span style='color:red'>" + d + "</span>";
+			})
+			  
+			group.call(tip);
+			
+			//the rectangle will be drawn from upper-left corner - co-ordinate system starts at the upper-left	screen
+			
+			group.selectAll("rect").data(energyProductionUSA).enter().append('rect')
+				.attr("class", "bar")
+				.attr("x", function(d, i) { return i*barWidth })
+				.attr("y", function(d, i) { 
+					return yScale(d);
+				})
+				.attr("width", barWidth)
+				.attr("height", function(d) { 
+					return chartHeight - yScale(d); 
+				})
+				.style("stroke", "white")
+				.style("fill", "#90EE90")
+				.on('mouseover', tip.show)
+				.on('mouseout', tip.hide);
+
+			// create x axis
+			var timeScale = d3.scaleTime()
+				.domain([new Date(1980, 0, 0), new Date(2012, 0, 1)])
+				.range([barWidth/2 , chartWidth + barWidth/2])
+
+			var xAxis = d3.axisBottom()
+				.scale(timeScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+			
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.style("stroke", "grey")
+				.attr("transform", "translate("+ (-40) +","+(chartHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+				.text(energyTypeSelected);
+
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.attr("transform", "translate("+ (chartWidth/2) +","+(chartHeight + 40)+")")  // centre below axis
+				.style("stroke", "grey")
+				.text("Time");				
+					  
+			console.log("O: drawBarChart() EXIT --");
+		}
+
+		function drawLineChart()
+		{
+			console.log("O: drawLineChart() ENTER --");
+			// get energy production for USA
+			var energyProductionUSA = localities[localityName].energyProduction;
+
+			// figure out maximum energy production
+			var maxProduction = d3.max(energyProductionUSA);
+
+			// chart size 
+			var chartWidth = 1000;
+			var chartHeight = 300;
+
+			// figure out the width of individual bars
+			var barWidth = chartWidth / (2012-1980);
+
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction])
+				.range([chartHeight, 0]);
+
+			var energyLabel = giveMeEnergy(energyTypeSelected, componentSelected);
+			
+			d3.select("#label1")
+				.html(localityName + " " +energyLabel);
+
+			var group = d3.select("#main1").append("g")
+				.attr("transform", "translate(130, 100)");
+			
+			
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+				return "<strong>Value:</strong> <span style='color:green'>" + d + "</span>";
+			})
+			  
+			group.call(tip);
+			
+			//add a line
+			var line = d3.line()
+						.x(function(d, i) { return i*barWidth })
+						.y(function(d, i) { return yScale(d)})
+			
+			// create x axis
+			var timeScale = d3.scaleTime()
+				.domain([new Date(1980, 0, 0), new Date(2012, 0, 0)])
+				.range([barWidth/2 , chartWidth + barWidth/2])
+
+			var xAxis = d3.axisBottom()
+				.scale(timeScale);
+				
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+				
+			var color = d3.scaleOrdinal(d3.schemeCategory10);
+			
+			group.append("path")
+				.transition()
+				.duration(1000)
+				.attr("class", "line")
+				.attr("d", line(energyProductionUSA))
+				.attr("stroke", "blue")
+				.attr("fill", "none")
+				.style("stroke", function(d) { return color(d); })
+				
+			group.selectAll('circle').data(energyProductionUSA).enter().append('circle')
+				  .attr("r", 3.5)
+				  .attr("cx", function(d, i) { return i*barWidth })
+				  .attr("cy", function(d, i) { return yScale(d)})
+				  .attr("fill", "skyblue")
+				  .attr("stroke", "black")	
+					.on('mouseover', tip.show)
+					.on('mouseout', tip.hide);
+	
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.style("stroke", "grey")
+				.attr("transform", "translate("+ (-40) +","+(chartHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+				.text(energyTypeSelected);
+
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.attr("transform", "translate("+ (chartWidth/2) +","+(chartHeight + 40)+")")  // centre below axis
+				.style("stroke", "grey")
+				.text("Time");	
+				
+			console.log("O: drawLineChart() EXIT --");
+		}
+		console.log(" F: firstTabFunc: EXIT");
+	}	
+	
+	function secondTabFunc(event)
+	{
+		console.log(" F: secondTabFunc: ENTER");
+		
+		//reset defaults
+		document.getElementById('barStyle').checked = true;
+		document.getElementById('singleStyle').checked = true;
+		document.getElementById('main2').style.display = "block";
+		document.getElementById('singleCompareDialog').style.display = "block";
+		document.getElementById('multipleCompareDialog').style.display = "none";
+		
+		d3.select('#componentWidget1').selectAll('option').remove();
+		d3.select('#componentWidget3').selectAll('option').remove();
+		
+		//hide the multiple graph content
+		document.getElementById('main3Div').style.display = "none";
+		
+		var i, tabcontent, tablinks;
+		tabcontent = document.getElementsByClassName("tabcontent");
+		for (i = 0; i < tabcontent.length; i++) {
+			tabcontent[i].style.display = "none";
+		}
+		tablinks = document.getElementsByClassName("tablinks");
+		for (i = 0; i < tablinks.length; i++) {
+			tablinks[i].className = tablinks[i].className.replace(" active", "");
+		}
+		document.getElementById("second").style.display = "block";
+		event.currentTarget.className += " active";
+		
+		var listOfLocalities1 = [];
+		var localities1 = {};
+		var localityName1;
+
+		var listOfLocalities2 = [];
+		var localities2 = {};
+		var localityName2;
+				
+		var listOfLocalities3 = [];
+		var localities3 = {};
+		var localityName3;
+		
+		var energyTypeSelected;
+		var componentSelected;
+		
+		//to draw chart in the next column 
+		var nextCol = false;
+		//to keep track how many charts added
+		var chartCount = 0;
+		
+		//have containers for various energy types and component views
+		var energyType = ["Total Primary Energy", "Total Electricity", "Renewable Electricity", 
+							"Renewable Biofuels", "Petroleum", "Coal", "Energy-related Co2 Emissions"];
+		var componentType = ["Production", "Consumption", "Generation", "Emissions"];
+		
+		//Initialize energy type list widget
+		d3.select('#energyTypeList1').selectAll('option').data(energyType).enter().append('option')
+			.html(function(d) { return d; })
+			.attr('value', function(d) { return d; })
+		
+		//Initialize component list widget
+		d3.select('#componentWidget1').append('option')
+			.attr('value', componentType[0])
+			.html(componentType[0]);
+		d3.select('#componentWidget1').append('option')
+			.attr('value', componentType[1])
+			.html(componentType[1]);
+			
+		//If the energy type is chosen, check for the components under it and update the component widget accordingly
+		d3.select("#energyTypeList1")
+			.on('change', function() {
+				var selection1 = document.getElementById('energyTypeList1');
+				var energySelection1 = selection1.options[selection1.selectedIndex].value;
+				
+				if(energySelection1 == 'Total Electricity' || energySelection1 == 'Renewable Electricity')
+				{
+					d3.select('#componentWidget1').selectAll('option').remove();
+					d3.select('#componentWidget1').append('option')
+						.attr('value', componentType[2])
+						.html(componentType[2]);
+					d3.select('#componentWidget1').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+				else if(energySelection1 == 'Energy-related Co2 Emissions')
+				{
+					d3.select('#componentWidget1').selectAll('option').remove();
+					d3.select('#componentWidget1').append('option')
+						.attr('value', componentType[3])
+						.html(componentType[3]);				
+				}
+				//for all other cases change back to default component types
+				else
+				{
+					d3.select('#componentWidget1').selectAll('option').remove();
+					d3.select('#componentWidget1').append('option')
+						.attr('value', componentType[0])
+						.html(componentType[0]);
+					d3.select('#componentWidget1').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+			});
+				
+			
+		console.log("O: Widget loading complete");
+		
+		//default display a bar chart
+		boot('barChart');
+		
+		function boot(chartType)
+		{
+			console.log("O: boot() ENTER ");
+			d3.select("#main2").selectAll('g').remove();
+							
+			var filename1;
+			
+			var selection1 = document.getElementById('energyTypeList1');
+			var energySelection1 = selection1.options[selection1.selectedIndex].value;
+			var choice1 = document.getElementById('componentWidget1');
+			var componentSelection1 = choice1.options[choice1.selectedIndex].value;
+			
+			energyTypeSelected = energySelection1;
+			componentSelected = componentSelection1;
+			
+			console.log("energySelection1: "+energySelection1);
+			console.log("componentSelection1: "+componentSelection1);
+			
+			for(var i=0; i < energyType.length; i++)
+			{
+				switch(energySelection1)
+				{
+					case 'Total Primary Energy':	
+													if(componentSelection1 == 'Production')
+													{
+														filename1="data/total_primary_energy_production.csv";
+													}
+													else
+													{
+														filename1="data/total_primary_energy_consumption.csv";
+													}
+													break;
+					case 'Total Electricity':
+													if(componentSelection1 == 'Generation')
+													{
+														filename1="data/total_electricity_generation.csv";
+													}
+													else
+													{
+														filename1="data/total_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Electricity':
+													if(componentSelection1 == 'Generation')
+													{
+														filename1="data/renewable_electricity_generation.csv";
+													}
+													else
+													{
+														filename1="data/renewable_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Biofuels':
+													if(componentSelection1 == 'Production')
+													{
+														filename1="data/renewable_biofuel_production.csv";
+													}
+													else
+													{
+														filename1="data/renewable_biofuel_consumption.csv";
+													}
+													break;
+					case 'Petroleum':
+													if(componentSelection1 == 'Production')
+													{
+														filename1="data/petroleum_production.csv";
+													}
+													else
+													{
+														filename1="data/petroleum_consumption.csv";
+													}
+													break;
+					case 'Coal':
+													if(componentSelection1 == 'Production')
+													{
+														filename1="data/coal_production.csv";
+													}
+													else
+													{
+														filename1="data/coal_consumption.csv";
+													}
+													break;
+					case 'Energy-related Co2 Emissions':
+													filename1="data/co2_emissions_per_capita.csv";
+													break;
+					default: //nothing
+				}
+			}
+			
+			console.log("filename1:  "+filename1);
+			
+			if(filename1 != '')
+			{
+				console.log("O: Parse first file");
+					Papa.parse(filename1, {
+				
+					download: true,
+					header: true,
+					dynamicTyping: true,
+					complete: function(results1) 
+					{
+						// loop through all the rows in file
+						for (var row=0; row < results1.data.length; row++)
+						{
+							var record1 = results1.data[row];
+							
+							// make an object to store data for the current locality
+							var locality1 = {
+								name: record1.Locality,
+								energyProduction1: []
+							}
+
+							// loop through all years, from 1980 to 2012
+							for (var year=1980; year<=2012; year++) 
+							{
+								var value = record1[year];
+								if(isNaN(value))
+								{
+									value = 0;	
+									//console.log("the value is NaN: "+value);
+								}
+								
+								// deal with missing data points
+								if (value === '--') {
+									value = 0;
+								}
+								else if (value === 'NA') {
+									value = 0;
+								}
+								else if (value === '(s)') {
+									value = 0;
+								}
+								else if (value === 'W') {
+									value = 0;
+								}
+
+								// add record of current energy production
+								locality1.energyProduction1.push( value );
+							}
+
+							// add the current locality to an index
+							localities1[ locality1.name] = locality1;
+							listOfLocalities1.push( locality1.name );
+						}
+
+						// populate selection list
+						d3.select('#selectionWidget1').selectAll('option').data(listOfLocalities1).enter().append('option')
+							.html(function(d) { return d; })
+							.attr('value', function(d) { return d; })
+							
+						// figure out the newly selected locality
+						var selection1 = document.getElementById('selectionWidget1');
+						localityName1 = selection1.options[selection1.selectedIndex].value;
+						console.log("localityName1: "+localityName1);
+						
+								// populate selection list
+								d3.select('#selectionWidget2').selectAll('option').data(listOfLocalities1).enter().append('option')
+									.html(function(d) { return d; })
+									.attr('value', function(d) { return d; })
+									
+								// figure out the newly selected locality
+								var selection2 = document.getElementById('selectionWidget2');
+								localityName2 = selection2.options[selection2.selectedIndex].value;
+								console.log("localityName2: "+localityName2);
+								
+								if(chartType =='barChart')
+								{
+									console.log("Drawing bar chats");
+									drawBarChart();
+								}
+								else
+								{
+									console.log("Drawing line chats");
+									drawLineChart();
+								}	
+
+					}				
+				});
+			}
+			
+			console.log("F: boot() EXIT");
+		}
+		
+		function compareCharts()
+		{
+			var chartStyle = document.getElementById('barStyle').checked;
+			console.log("chart style: compare(): "+chartStyle);
+			if(chartStyle)
+			{
+				console.log("Drawing bar chats");
+				boot('barChart');
+			}
+			else
+			{
+				console.log("Drawing line chats");
+				boot('lineChart');
+			}
+		}
+		secondTabFunc.compareChart = compareCharts;
+		
+		function drawBarChart()
+		{
+			console.log("F: drawBarChart() ENTER ");
+			// get energy production 
+			var energyProduction1 = localities1[localityName1].energyProduction1;
+			var energyProduction2 = localities1[localityName2].energyProduction1;
+			
+			// figure out maximum energy production
+			var production1 = d3.max(energyProduction1);
+			var production2 = d3.max(energyProduction2);
+			var maxProduction = (production1 > production2)? production1 : production2;
+			console.log("O: maxProduction : "+maxProduction);
+			
+			// chart size 
+			var chartWidth = 700;
+			var chartHeight = 200;
+
+			// figure out the width of individual bars - multiply by 2 to make finer bars
+			var barWidth = chartWidth / ((2012-1980) * 2) ;
+
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction])
+				.range([chartHeight, 0]);
+
+			var energyLabel = giveMeEnergy(energyTypeSelected, componentSelected);
+			
+			d3.select("#label2")
+				.html(energyLabel);
+				
+			var group = d3.select("#main2").append("g")
+				.attr("transform", "translate(80, 150)");
+
+			//the rectangle will be drawn from upper-left corner - co-ordinate system starts at the upper-left	screen
+			var rectGroup = group.selectAll("rect");
+			
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+				return "<strong>Value:</strong> <span style='color:green'>" + d + "</span>";
+			})
+			  
+			group.call(tip);
+			
+			//multiply 2 in i*barWidth*2 as below to spread the bars evenly along x axis
+			rectGroup.data(energyProduction1).enter().append('rect')
+				.attr("x", function(d, i) { return i*barWidth*2 })
+				.attr("y", function(d, i) { 
+					return yScale(d);
+				})
+				.attr("width", barWidth/2)
+				.attr("height", function(d) { 
+					return chartHeight - yScale(d); 
+				})
+				.style("stroke", "white")
+				.style("fill", "#5ab4ac")
+				.on('mouseover', tip.show)
+				.on('mouseout', tip.hide);
+				
+			rectGroup.data(energyProduction2).enter().append('rect')
+				.attr("x", function(d, i) { return i*barWidth*2 +  barWidth/2})
+				.attr("y", function(d, i) { 
+					return yScale(d);
+				})
+				.attr("width", barWidth/2)
+				.attr("height", function(d) { 
+					return chartHeight - yScale(d); 
+				})
+				.style("stroke", "white")
+				.style("fill", "#d8b365")
+				.on('mouseover', tip.show)
+				.on('mouseout', tip.hide);
+				
+			// create x axis
+			var timeScale = d3.scaleTime()
+				.domain([new Date(1980, 0, 0), new Date(2012, 0, 1)])
+				.range([barWidth/2 , chartWidth + barWidth/2])
+
+			var xAxis = d3.axisBottom()
+				.scale(timeScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+				
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.style("stroke", "grey")
+				.attr("transform", "translate("+ (-40) +","+(chartHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+				.text(energyTypeSelected);
+
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.attr("transform", "translate("+ (chartWidth/2) +","+(chartHeight + 40)+")")  // centre below axis
+				.style("stroke", "grey")
+				.text("Time");	
+				
+			console.log("O: drawBarChart() EXIT --");
+		}
+		
+		function drawLineChart()
+		{
+			console.log("O: drawLineChart() ENTER --");
+			// get energy production 
+			var energyProduction1 = localities1[localityName1].energyProduction1;
+			var energyProduction2 = localities1[localityName2].energyProduction1;
+			
+			// figure out maximum energy production
+			var production1 = d3.max(energyProduction1);
+			var production2 = d3.max(energyProduction2);
+			var maxProduction = (production1 > production2)? production1 : production2;
+			console.log("O: maxProduction : "+maxProduction);
+
+			// chart size 
+			var chartWidth = 700;
+			var chartHeight = 200;
+
+			// figure out the width of individual bars
+			var barWidth = chartWidth / (2012-1980);
+
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction])
+				.range([chartHeight, 0]);
+
+			var energyLabel = giveMeEnergy(energyTypeSelected, componentSelected);
+			
+			d3.select("#label2")
+				.html(energyLabel);
+
+			var group = d3.select("#main2").append("g")
+				.attr("transform", "translate(80, 150)");
+
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+				return "<strong>Value:</strong> <span style='color:green'>" + d + "</span>";
+			})
+			  
+			group.call(tip);
+			
+			//add a line
+			var line1 = d3.line()
+						.x(function(d, i) { return i*barWidth })
+						.y(function(d, i) { return yScale(d)})
+			
+			//add a line
+			var line2 = d3.line()
+						.x(function(d, i) { return i*barWidth })
+						.y(function(d, i) { return yScale(d)})
+						
+			// create x axis
+			var timeScale = d3.scaleTime()
+				.domain([new Date(1980, 0, 0), new Date(2012, 0, 0)])
+				.range([barWidth/2 , chartWidth + barWidth/2])
+
+			var xAxis = d3.axisBottom()
+				.scale(timeScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+				
+			var path1 = group.append("path")
+				.attr("class", "line1")
+				.attr("d", line1(energyProduction1))
+				.attr("stroke", "blue")
+				.attr("fill", "none")
+
+			group.selectAll('path1').data(energyProduction1).enter().append('circle')
+				  .attr("r", 3.5)
+				  .attr("cx", function(d, i) { return i*barWidth })
+				  .attr("cy", function(d, i) { return yScale(d)})
+				  .attr("fill", "skyblue")
+				  .attr("stroke", "black")	
+					.on('mouseover', tip.show)
+					.on('mouseout', tip.hide);
+					
+			var path2 = group.append("path")
+				.attr("class", "line2")
+				.attr("d", line2(energyProduction2))
+				.attr("stroke", "#FF4500")
+				.attr("fill", "none")
+					
+			group.selectAll("path2").data(energyProduction2).enter().append('circle')
+				  .attr("r", 3.5)
+				  .attr("cx", function(d, i) { return i*barWidth })
+				  .attr("cy", function(d, i) { return yScale(d)})
+				  .attr("fill", "#FF4500")
+				  .attr("stroke", "black")	
+					.on('mouseover', tip.show)
+					.on('mouseout', tip.hide);
+					
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.style("stroke", "grey")
+				.attr("transform", "translate("+ (-40) +","+(chartHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+				.text(energyTypeSelected);
+
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.attr("transform", "translate("+ (chartWidth/2) +","+(chartHeight + 40)+")")  // centre below axis
+				.style("stroke", "grey")
+				.text("Time");	
+				
+			console.log("O: drawLineChart() EXIT --");
+		}
+		
+		//Initialize energy type list widget
+		d3.select('#energyTypeList3').selectAll('option').data(energyType).enter().append('option')
+			.html(function(d) { return d; })
+			.attr('value', function(d) { return d; })
+		
+		//Initialize component list widget
+		d3.select('#componentWidget3').append('option')
+			.attr('value', componentType[0])
+			.html(componentType[0]);
+		d3.select('#componentWidget3').append('option')
+			.attr('value', componentType[1])
+			.html(componentType[1]);
+			
+		//If the energy type is chosen, check for the components under it and update the component widget accordingly
+		d3.select("#energyTypeList3")
+			.on('change', function() {
+				var selection3 = document.getElementById('energyTypeList3');
+				var energySelection = selection3.options[selection3.selectedIndex].value;
+				
+				if(energySelection == 'Total Electricity' || energySelection == 'Renewable Electricity')
+				{
+					d3.select('#componentWidget3').selectAll('option').remove();
+					d3.select('#componentWidget3').append('option')
+						.attr('value', componentType[2])
+						.html(componentType[2]);
+					d3.select('#componentWidget3').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+				else if(energySelection == 'Energy-related Co2 Emissions')
+				{
+					d3.select('#componentWidget3').selectAll('option').remove();
+					d3.select('#componentWidget3').append('option')
+						.attr('value', componentType[3])
+						.html(componentType[3]);				
+				}
+				//for all other cases change back to default component types
+				else
+				{
+					d3.select('#componentWidget3').selectAll('option').remove();
+					d3.select('#componentWidget3').append('option')
+						.attr('value', componentType[0])
+						.html(componentType[0]);
+					d3.select('#componentWidget3').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+			});
+			
+		console.log("O: Widget loading complete");
+		
+		boot3('none');
+		
+		function boot3(chartType)
+		{
+			console.log("O: boot3() ENTER chartType: "+chartType);
+							
+			var filename;
+			var selection = document.getElementById('energyTypeList3');
+			var energySelection = selection.options[selection.selectedIndex].value;
+			var choice = document.getElementById('componentWidget3');
+			var componentSelection = choice.options[choice.selectedIndex].value;
+			
+			console.log("energySelection: "+energySelection);
+			console.log("componentSelection: "+componentSelection);
+			
+			for(var i=0; i < energyType.length; i++)
+			{
+				switch(energySelection)
+				{
+					case 'Total Primary Energy':	
+													if(componentSelection == 'Production')
+													{
+														filename="data/total_primary_energy_production.csv";
+													}
+													else
+													{
+														filename="data/total_primary_energy_consumption.csv";
+													}
+													break;
+					case 'Total Electricity':
+													if(componentSelection == 'Generation')
+													{
+														filename="data/total_electricity_generation.csv";
+													}
+													else
+													{
+														filename="data/total_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Electricity':
+													if(componentSelection == 'Generation')
+													{
+														filename="data/renewable_electricity_generation.csv";
+													}
+													else
+													{
+														filename="data/renewable_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Biofuels':
+													if(componentSelection == 'Production')
+													{
+														filename="data/renewable_biofuel_production.csv";
+													}
+													else
+													{
+														filename="data/renewable_biofuel_consumption.csv";
+													}
+													break;
+					case 'Petroleum':
+													if(componentSelection == 'Production')
+													{
+														filename="data/petroleum_production.csv";
+													}
+													else
+													{
+														filename="data/petroleum_consumption.csv";
+													}
+													break;
+					case 'Coal':
+													if(componentSelection == 'Production')
+													{
+														filename="data/coal_production.csv";
+													}
+													else
+													{
+														filename="data/coal_consumption.csv";
+													}
+													break;
+					case 'Energy-related Co2 Emissions':
+													filename="data/co2_emissions_per_capita.csv";
+													break;
+					default: //nothing
+				}
+			}
+			
+			console.log("filename:  "+filename);
+			
+			if(filename != '')
+			{
+					Papa.parse(filename, {
+				
+					download: true,
+					header: true,
+					dynamicTyping: true,
+					complete: function(results) 
+					{
+						// loop through all the rows in file
+						for (var row=0; row < results.data.length; row++)
+						{
+							var record = results.data[row];
+							
+							// make an object to store data for the current locality
+							var locality = {
+								name: record.Locality,
+								energyProduction: []
+							}
+
+							// loop through all years, from 1980 to 2012
+							for (var year=1980; year<=2012; year++) 
+							{
+								var value = record[year];
+								if(isNaN(value))
+								{
+									value = 0;	
+									//console.log("the value is NaN: "+value);
+								}
+								
+								// deal with missing data points
+								if (value === '--') {
+									value = 0;
+								}
+								else if (value === 'NA') {
+									value = 0;
+								}
+								else if (value === '(s)') {
+									value = 0;
+								}
+								else if (value === 'W') {
+									value = 0;
+								}
+
+								// add record of current energy production
+								locality.energyProduction.push( value );
+							}
+
+							// add the current locality to an index
+							localities3[ locality.name] = locality;
+							listOfLocalities3.push( locality.name );
+						}
+
+						// populate selection list
+						d3.select('#selectionWidget3').selectAll('option').data(listOfLocalities3).enter().append('option')
+							.html(function(d) { return d; })
+							.attr('value', function(d) { return d; })
+							
+						// figure out the newly selected locality
+						var selection = document.getElementById('selectionWidget3');
+						localityName3 = selection.options[selection.selectedIndex].value;
+						console.log("localityName3: "+localityName3);
+						
+						if(chartType == 'barChart')
+						{
+							drawBarChart3();
+						}
+						else if(chartType == 'lineChart')
+						{
+							drawLineChart3();
+						}
+						else{
+							console.log("none chart to draw");
+						}
+					}
+				});
+
+			}
+			console.log("O: boot() EXIT --");
+		}
+		
+		function addChart()
+		{
+			var chartStyle = document.getElementById('barStyle2').checked;
+			
+			if(chartStyle)
+			{
+				boot3('barChart');
+				console.log("O: boot3 barchart call");
+			}
+			else
+			{
+				boot3('lineChart');
+				console.log("O: boot3 linechart call");
+			}
+		}
+		secondTabFunc.addChart = addChart;
+		
+		function clearChart()
+		{
+			d3.select('#main3Div').selectAll('svg').remove();
+		}
+		secondTabFunc.clearChart = clearChart;
+		
+		function drawBarChart3()
+		{
+			console.log("O: drawBarChart() ENTER --");
+			chartCount+= 1;
+
+			var energyProduction = localities3[localityName3].energyProduction;
+
+			// figure out maximum energy production
+			var maxProduction = d3.max(energyProduction);
+
+			// chart size 
+			var chartWidth = 500;
+			var chartHeight = 120;
+			
+			// figure out the width of individual bars
+			var barWidth = chartWidth / (2012-1980);
+
+			var main3Grp = d3.select("#main3Div");
+			
+			var newMain = "main3"+chartCount;
+			
+			var newSvg;
+			
+			if(!nextCol)
+			{
+				newSvg = main3Grp.append("svg")
+					.attr("id", newMain)
+					.attr("width", 650)
+					.attr("height", 200)
+					.attr("style", "position: absolute, left: 10px, top: "+chartCount*250+"px;");
+				nextCol = true;
+			}
+			else
+			{
+				newSvg = main3Grp.append("svg")
+					.attr("id", newMain)
+					.attr("width", 650)
+					.attr("height", 200)
+					.attr("style", "position: absolute, left: 700px, top: "+chartCount*250+"px;");
+				nextCol = false;
+			}
+			
+			
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction])
+				.range([chartHeight , 0]);
+
+			//do not use newMain since it does not exist yet, so use the existing newSvg and append
+			var group = newSvg.append("g")
+				.attr("transform", "translate(100, 20)");
+				
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+				return "<strong>Value:</strong> <span style='color:green'>" + d + "</span>";
+			})
+			  
+			group.call(tip);
+			
+			//the rectangle will be drawn from upper-left corner - co-ordinate system starts at the upper-left	screen
+			group.selectAll("rect").data(energyProduction).enter().append('rect')
+				.attr("x", function(d, i) { return i*barWidth })
+				.attr("y", function(d, i) { 
+					return yScale(d);
+				})
+				.attr("width", barWidth)
+				.attr("height", function(d) { 
+					return chartHeight - yScale(d); 
+				})
+				.style("stroke", "white")
+				.style("fill", "#0066cc")
+									.on('mouseover', tip.show)
+					.on('mouseout', tip.hide);
+					
+			// create x axis
+			var timeScale = d3.scaleTime()
+				.domain([new Date(1980, 0, 0), new Date(2012, 0, 1)])
+				.range([barWidth/2 , chartWidth + barWidth/2])
+
+			var xAxis = d3.axisBottom()
+				.scale(timeScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+				
+			console.log("O: drawBarChart() EXIT --");
+		}
+
+		function drawLineChart3()
+		{
+			console.log("O: drawLineChart() ENTER --");
+			chartCount+= 1;
+
+			var energyProduction = localities3[localityName3].energyProduction;
+
+			// figure out maximum energy production
+			var maxProduction = d3.max(energyProduction);
+
+			// chart size 
+			var chartWidth = 500;
+			var chartHeight = 120;
+
+			// figure out the width of individual bars
+			var barWidth = chartWidth / (2012-1980);
+
+			var main3Grp = d3.select("#main3Div");
+			
+			var newMain = "main3"+chartCount;
+			
+			var newSvg;
+			
+			if(!nextCol)
+			{
+				newSvg = main3Grp.append("svg")
+					.attr("id", newMain)
+					.attr("width", 650)
+					.attr("height", 200)
+					.attr("style", "position: absolute, left: 10px, top: "+chartCount*250+"px;");
+				nextCol = true;
+			}
+			else
+			{
+				newSvg = main3Grp.append("svg")
+					.attr("id", newMain)
+					.attr("width", 650)
+					.attr("height", 200)
+					.attr("style", "position: absolute, left: 700px, top: "+chartCount*250+"px;");
+				nextCol = false;
+			}
+			
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction])
+				.range([chartHeight, 0]);
+
+			var group = newSvg.append("g")
+				.attr("transform", "translate(100, 20)");
+
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(function(d) {
+				return "<strong>Value:</strong> <span style='color:green'>" + d + "</span>";
+			})
+			  
+			group.call(tip);
+			
+			//add a line
+			var line = d3.line()
+						.x(function(d, i) { return i*barWidth })
+						.y(function(d, i) { return yScale(d)})
+			
+			// create x axis
+			var timeScale = d3.scaleTime()
+				.domain([new Date(1980, 0, 0), new Date(2012, 0, 0)])
+				.range([barWidth/2 , chartWidth + barWidth/2])
+
+			var xAxis = d3.axisBottom()
+				.scale(timeScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+				
+			var path1 = group.append("path")
+				.attr("class", "line")
+				.attr("d", line(energyProduction))
+				.attr("stroke", "blue")
+				.attr("fill", "none")
+				
+			group.selectAll("path1").data(energyProduction).enter().append('circle')
+				  .attr("r", 3.5)
+				  .attr("cx", function(d, i) { return i*barWidth })
+				  .attr("cy", function(d, i) { return yScale(d)})
+				  .attr("fill", "skyblue")
+				  .attr("stroke", "black")	
+					.on('mouseover', tip.show)
+					.on('mouseout', tip.hide);
+					
+			console.log("O: drawLineChart() EXIT --");
+		}
+		
+		console.log(" F: secondTabFunc: EXIT");
+	}
+	
+	function thirdTabFunc(event)
+	{
+		console.log(" F: thirdTabFunc: ENTER");
+		
+		d3.select('#componentWidget4').selectAll('option').remove();
+		
+		var i, tabcontent, tablinks;
+		tabcontent = document.getElementsByClassName("tabcontent");
+		for (i = 0; i < tabcontent.length; i++) {
+			tabcontent[i].style.display = "none";
+		}
+		tablinks = document.getElementsByClassName("tablinks");
+		for (i = 0; i < tablinks.length; i++) {
+			tablinks[i].className = tablinks[i].className.replace(" active", "");
+		}
+		document.getElementById("third").style.display = "block";
+		event.currentTarget.className += " active";
+		
+		var listOfLocalities1 = [];
+		var localities1 = {};
+		var listOfLocalities2 = [];
+		var localities2 = {};
+		var localityName = "North America";
+		
+		var energy1;
+		var energy2;
+		var component1;
+		var component2;
+		
+		//animation timer delay
+		var delay = 1000;
+		//do not draw scatter plot on first boot
+		var isFirstBoot = true;
+		
+		//have containers for various energy types and component views
+		var energyType = ["Total Primary Energy", "Total Electricity", "Renewable Electricity", 
+							"Renewable Biofuels", "Petroleum", "Coal", "Energy-related Co2 Emissions"];
+		var componentType = ["Production", "Consumption", "Generation", "Emissions"];
+		
+		d3.select('#componentWidget4').selectAll('option').remove();
+		d3.select('#componentWidget5').selectAll('option').remove();
+		
+		//Initialize energy type list widget
+		d3.select('#energyTypeList4').selectAll('option').data(energyType).enter().append('option')
+			.html(function(d) { return d; })
+			.attr('value', function(d) { return d; })
+		d3.select('#energyTypeList5').selectAll('option').data(energyType).enter().append('option')
+			.html(function(d) { return d; })
+			.attr('value', function(d) { return d; })
+		
+		//Initialize component list widget
+		d3.select('#componentWidget4').append('option')
+			.attr('value', componentType[0])
+			.html(componentType[0]);
+		d3.select('#componentWidget4').append('option')
+			.attr('value', componentType[1])
+			.html(componentType[1]);
+		d3.select('#componentWidget5').append('option')
+			.attr('value', componentType[0])
+			.html(componentType[0]);
+		d3.select('#componentWidget5').append('option')
+			.attr('value', componentType[1])
+			.html(componentType[1]);
+			
+		//If the energy type is chosen, check for the components under it and update the component widget accordingly
+		d3.select("#energyTypeList4")
+			.on('change', function() {
+				var selection = document.getElementById('energyTypeList4');
+				var energySelection = selection.options[selection.selectedIndex].value;
+				
+				if(energySelection == 'Total Electricity' || energySelection == 'Renewable Electricity')
+				{
+					d3.select('#componentWidget4').selectAll('option').remove();
+					d3.select('#componentWidget4').append('option')
+						.attr('value', componentType[2])
+						.html(componentType[2]);
+					d3.select('#componentWidget4').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+				else if(energySelection == 'Energy-related Co2 Emissions')
+				{
+					d3.select('#componentWidget4').selectAll('option').remove();
+					d3.select('#componentWidget4').append('option')
+						.attr('value', componentType[3])
+						.html(componentType[3]);				
+				}
+				//for all other cases change back to default component types
+				else
+				{
+					d3.select('#componentWidget4').selectAll('option').remove();
+					d3.select('#componentWidget4').append('option')
+						.attr('value', componentType[0])
+						.html(componentType[0]);
+					d3.select('#componentWidget4').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+			});
+		
+		d3.select("#energyTypeList5")
+			.on('change', function() {
+				var selection = document.getElementById('energyTypeList5');
+				var energySelection = selection.options[selection.selectedIndex].value;
+				
+				if(energySelection == 'Total Electricity' || energySelection == 'Renewable Electricity')
+				{
+					d3.select('#componentWidget5').selectAll('option').remove();
+					d3.select('#componentWidget5').append('option')
+						.attr('value', componentType[2])
+						.html(componentType[2]);
+					d3.select('#componentWidget5').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+				else if(energySelection == 'Energy-related Co2 Emissions')
+				{
+					d3.select('#componentWidget5').selectAll('option').remove();
+					d3.select('#componentWidget5').append('option')
+						.attr('value', componentType[3])
+						.html(componentType[3]);				
+				}
+				//for all other cases change back to default component types
+				else
+				{
+					d3.select('#componentWidget5').selectAll('option').remove();
+					d3.select('#componentWidget5').append('option')
+						.attr('value', componentType[0])
+						.html(componentType[0]);
+					d3.select('#componentWidget5').append('option')
+						.attr('value', componentType[1])
+						.html(componentType[1]);
+				}
+			});
+			
+		console.log("O: Widget loading complete");
+		boot();
+		
+		function scatterChart()
+		{
+			console.log("### A: scatterChart() function called ###");
+			isFirstBoot = false;
+			boot();
+		}	
+		//to call nested function on button click
+		thirdTabFunc.scatterChart = scatterChart;
+		
+		function boot()
+		{
+			console.log("O: boot() ENTER ");
+			d3.select("#main4").selectAll('g').remove();
+							
+			var filename1;
+			var filename2;
+			
+			var selection1 = document.getElementById('energyTypeList4');
+			var energySelection4 = selection1.options[selection1.selectedIndex].value;
+			var choice1 = document.getElementById('componentWidget4');
+			var componentSelection4 = choice1.options[choice1.selectedIndex].value;
+			
+			var selection2 = document.getElementById('energyTypeList5');
+			var energySelection5 = selection2.options[selection2.selectedIndex].value;
+			var choice2 = document.getElementById('componentWidget5');
+			var componentSelection5 = choice2.options[choice2.selectedIndex].value;
+			
+			energy1 = energySelection4;
+			energy2 = energySelection5;
+			component1 = componentSelection4;
+			component2 = componentSelection5;
+			
+			console.log("energySelection4: "+energySelection4);
+			console.log("componentSelection5: "+componentSelection4);
+			
+			console.log("energySelection5: "+energySelection5);
+			console.log("componentSelection5: "+componentSelection5);
+			
+			for(var i=0; i < energyType.length; i++)
+			{
+				switch(energySelection4)
+				{
+					case 'Total Primary Energy':	
+													if(componentSelection4 == 'Production')
+													{
+														filename1="data/total_primary_energy_production.csv";
+													}
+													else
+													{
+														filename1="data/total_primary_energy_consumption.csv";
+													}
+													break;
+					case 'Total Electricity':
+													if(componentSelection4 == 'Generation')
+													{
+														filename1="data/total_electricity_generation.csv";
+													}
+													else
+													{
+														filename1="data/total_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Electricity':
+													if(componentSelection4 == 'Generation')
+													{
+														filename1="data/renewable_electricity_generation.csv";
+													}
+													else
+													{
+														filename1="data/renewable_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Biofuels':
+													if(componentSelection4 == 'Production')
+													{
+														filename1="data/renewable_biofuel_production.csv";
+													}
+													else
+													{
+														filename1="data/renewable_biofuel_consumption.csv";
+													}
+													break;
+					case 'Petroleum':
+													if(componentSelection4 == 'Production')
+													{
+														filename1="data/petroleum_production.csv";
+													}
+													else
+													{
+														filename1="data/petroleum_consumption.csv";
+													}
+													break;
+					case 'Coal':
+													if(componentSelection4 == 'Production')
+													{
+														filename1="data/coal_production.csv";
+													}
+													else
+													{
+														filename1="data/coal_consumption.csv";
+													}
+													break;
+					case 'Energy-related Co2 Emissions':
+													filename1="data/co2_emissions_per_capita.csv";
+													break;
+					default: //nothing
+				}
+				
+				switch(energySelection5)
+				{
+					case 'Total Primary Energy':	
+													if(componentSelection5 == 'Production')
+													{
+														filename2="data/total_primary_energy_production.csv";
+													}
+													else
+													{
+														filename2="data/total_primary_energy_consumption.csv";
+													}
+													break;
+					case 'Total Electricity':
+													if(componentSelection5 == 'Generation')
+													{
+														filename2="data/total_electricity_generation.csv";
+													}
+													else
+													{
+														filename2="data/total_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Electricity':
+													if(componentSelection5 == 'Generation')
+													{
+														filename2="data/renewable_electricity_generation.csv";
+													}
+													else
+													{
+														filename2="data/renewable_electricity_consumption.csv";
+													}
+													break;
+					case 'Renewable Biofuels':
+													if(componentSelection5 == 'Production')
+													{
+														filename2="data/renewable_biofuel_production.csv";
+													}
+													else
+													{
+														filename2="data/renewable_biofuel_consumption.csv";
+													}
+													break;
+					case 'Petroleum':
+													if(componentSelection5 == 'Production')
+													{
+														filename2="data/petroleum_production.csv";
+													}
+													else
+													{
+														filename2="data/petroleum_consumption.csv";
+													}
+													break;
+					case 'Coal':
+													if(componentSelection5 == 'Production')
+													{
+														filename2="data/coal_production.csv";
+													}
+													else
+													{
+														filename2="data/coal_consumption.csv";
+													}
+													break;
+					case 'Energy-related Co2 Emissions':
+													filename2="data/co2_emissions_per_capita.csv";
+													break;
+					default: //nothing
+				}
+			}
+			
+			console.log("filename1:  "+filename1);
+			console.log("filename2:  "+filename2);
+			
+			if(filename1 != '' && filename2 != '')
+			{
+				console.log("O: Parse first file");
+					Papa.parse(filename1, {
+				
+					download: true,
+					header: true,
+					dynamicTyping: true,
+					complete: function(results1) 
+					{
+						// loop through all the rows in file
+						for (var row=0; row < results1.data.length; row++)
+						{
+							var record1 = results1.data[row];
+							
+							// make an object to store data for the current locality
+							var locality1 = {
+								name: record1.Locality,
+								energyProduction1: []
+							}
+
+							// loop through all years, from 1980 to 2012
+							for (var year=1980; year<=2012; year++) 
+							{
+								var value = record1[year];
+								if(isNaN(value))
+								{
+									value = 0;	
+									//console.log("the value is NaN: "+value);
+								}
+								
+								// deal with missing data points
+								if (value === '--') {
+									value = 0;
+								}
+								else if (value === 'NA') {
+									value = 0;
+								}
+								else if (value === '(s)') {
+									value = 0;
+								}
+								else if (value === 'W') {
+									value = 0;
+								}
+
+								// add record of current energy production
+								locality1.energyProduction1.push( value );
+							}
+
+							// add the current locality to an index
+							localities1[ locality1.name] = locality1;
+							listOfLocalities1.push( locality1.name );
+						}
+						
+						console.log("O: Parse second file");
+						Papa.parse(filename2, {
+						
+							download: true,
+							header: true,
+							dynamicTyping: true,
+							complete: function(results2) 
+							{
+								// loop through all the rows in file
+								for (var row=0; row < results2.data.length; row++)
+								{
+									var record2 = results2.data[row];
+									
+									// make an object to store data for the current locality
+									var locality2 = {
+										name: record2.Locality,
+										energyProduction2: []
+									}
+
+									// loop through all years, from 1980 to 2012
+									for (var year=1980; year<=2012; year++) 
+									{
+										var value = record2[year];
+										if(isNaN(value))
+										{
+											value = 0;	
+											//console.log("the value is NaN: "+value);
+										}
+										
+										// deal with missing data points
+										if (value === '--') {
+											value = 0;
+										}
+										else if (value === 'NA') {
+											value = 0;
+										}
+										else if (value === '(s)') {
+											value = 0;
+										}
+										else if (value === 'W') {
+											value = 0;
+										}
+
+										// add record of current energy production
+										locality2.energyProduction2.push( value );
+									}
+
+									// add the current locality to an index
+									localities2[ locality2.name] = locality2;
+									listOfLocalities2.push( locality2.name );
+								}
+								
+								d3.select('#countryList').selectAll('input').data(listOfLocalities1).enter()
+									.append("foreignObject")
+									.append("xhtml:body")
+									.html(function(d, i){ return ("<form><input type=checkbox id= country"+i+">"+ d +"</form>")});
+
+								//populate compare widget list	
+								d3.select('#compareWidget4').selectAll('option').data(listOfLocalities1).enter().append('option')
+									.html(function(d) { return d; })
+									.attr('value', function(d) { return d; })
+																
+								d3.select('#compareWidget5').selectAll('option').data(listOfLocalities1).enter().append('option')
+									.html(function(d) { return d; })
+									.attr('value', function(d) { return d; })
+						
+								if(!isFirstBoot)
+								{
+									drawScatterPlot(i);										
+								}
+							}
+						});
+					}
+				});
+			}
+			console.log("O: boot() EXIT --");
+		}
+		
+		function drawScatterPlot()
+		{
+			console.log("O: drawScatterPlot() ENTER --");
+			
+			var colorSp  = ["#a6cee3",
+							"#1f78b4",
+							"#b2df8a",
+							"#33a02c",
+							"#fb9a99",
+							"#e31a1c",
+							"#fdbf6f",
+							"#ff7f00",
+							"#cab2d6",
+							"#6a3d9a"];
+							
+			// figure out maximum energy production from the array
+			var maxProduction1 = 0;
+			var maxProduction2 = 0;
+			
+			var checkList = document.getElementById('countryList');
+			var checkBoxList = checkList.getElementsByTagName("input");
+			var max1;
+			var max2;
+			var country;
+			var energyProduction1;
+			var energyProduction2;
+			
+			var listOfCountries = [];
+			
+			for (i = 0; i < checkBoxList.length; i++) {
+				if (checkBoxList[i].checked) {
+						//get country name
+						var x = document.getElementsByTagName("FORM")[i].textContent;
+						listOfCountries.push(x);              
+				}
+			}
+			
+			for(i = 0; i < listOfCountries.length; i++)
+			{
+				country = listOfCountries[i];
+				energyProduction1 = localities1[country].energyProduction1;
+				energyProduction2 = localities2[country].energyProduction2;	
+				
+				console.log("energyProduction1: "+energyProduction1);
+				console.log("energyProduction2: "+energyProduction2);
+				
+				max1 = d3.max(energyProduction1);
+				max2 = d3.max(energyProduction2);
+				
+				maxProduction1 = maxProduction1 > max1 ? maxProduction1 : max1;
+				maxProduction2 = maxProduction2 > max2 ? maxProduction2 : max2;
+			}
+			console.log("maxProduction1: "+maxProduction1);
+			console.log("maxProduction2: "+maxProduction2);
+			console.log("O: drawScatterPlot() listOfCountries -- "+listOfCountries);
+			
+			// chart size 
+			var chartWidth = 400;
+			var chartHeight = 400;
+
+			//make sure it is 0, chartWidth
+			var xScale = d3.scaleLinear()
+				.domain([0, maxProduction1])
+				.range([0, chartWidth]);
+				
+			// create a y scale - since the range has arguments interchanged, it returns -scale
+			var yScale = d3.scaleLinear()
+				.domain([0, maxProduction2])
+				.range([chartHeight, 0]);
+			
+			// setup fill color
+			var cValue = function(d) { return listOfCountries;};
+			var countryVal = function(d) {return 33;};
+		    var color = d3.scaleOrdinal(d3.schemeCategory10);
+	
+			var group = d3.select("#main4").append("g")
+				.attr("transform", "translate(100, 50)");
+						
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([-10, 0])
+				.html(
+				"<strong>Value:</strong> <span style='color:green'>"+ country +" </span>"
+			)
+			  
+			for(i = 0; i < listOfCountries.length; i++)
+			{
+				country = listOfCountries[i];
+				//for each country get x and y
+				energyProduction1 = localities1[country].energyProduction1;
+				energyProduction2 = localities2[country].energyProduction2;
+				
+					group.append("circle")
+						.transition()
+						.duration(1000)
+						.attr("id", "dot")
+						.attr("r", 6)
+						.attr("cx", xScale(energyProduction1[0]))
+						.attr("cy", yScale(energyProduction2[0]))
+						.style("fill", colorSp[i % 10])
+						.style("stroke", "black")
+						
+				console.log("energyProduction1: "+energyProduction1);				  
+				console.log("energyProduction2: "+energyProduction2);
+			}
+		
+						
+			group.call(tip);
+					
+			var xAxis = d3.axisBottom()
+				.scale(xScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(0,' + chartHeight + ')')
+				.call(xAxis);
+				
+			// create y axis
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+
+			group.append("g")
+				.attr('class', 'axis')
+				.attr('transform', 'translate(-2,0)')
+				.call(yAxis);
+
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.style("stroke", "grey")
+				.attr("transform", "translate("+ (-40) +","+(chartHeight/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+				.text(energy2+" "+component2);	
+				
+			group.append("text")
+				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+				.attr("transform", "translate("+ (chartWidth/2) +","+(chartHeight + 40)+")")  // centre below axis
+				.style("stroke", "grey")
+				.text(energy1+" "+component1);	
+				
+			console.log("O: drawScatterPlot() EXIT --");
+		}
+		console.log(" F: thirdTabFunc: EXIT");
+	}
+
+	function singleChartSelected()
+	{
+		console.log("F: singleChartSelected() ENTER");
+		document.getElementById('main2').style.display = "block";
+		document.getElementById('singleCompareDialog').style.display = "block";
+		document.getElementById('multipleCompareDialog').style.display = "none";
+		document.getElementById('main3Div').style.display = "none";
+	}
+	
+	function multipleChartSelected()
+	{
+		console.log("F: multipleChartSelected() ENTER");
+		document.getElementById('main2').style.display = "none";
+		document.getElementById('singleCompareDialog').style.display = "none";
+		document.getElementById('multipleCompareDialog').style.display = "block";
+		document.getElementById('main3Div').style.display = "block";		
+	}
+	
+function fourthTabFunc(event)
+{
+	var listOfLocalities = [];
+	var localities = {};
+	var filename = "total_primary_energy_production.csv";
+	var i, tabcontent, tablinks;
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+	}
+	document.getElementById("fourth").style.display = "block";
+	event.currentTarget.className += " active";
+}
+function fifthTabFunc(event)
+{
+	var listOfLocalities = [];
+	var localities = {};
+	var filename = "total_primary_energy_production.csv";
+	var i, tabcontent, tablinks;
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+	}
+	document.getElementById("fifth").style.display = "block";
+	event.currentTarget.className += " active";
+}
+
+
+</script>
+</body>
+
+</html>
